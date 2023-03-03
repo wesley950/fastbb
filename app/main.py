@@ -1,13 +1,9 @@
 from fastapi import FastAPI
 
-from dotenv import load_dotenv
-
 from . import models
 from .database import engine
 from .routers import users, quotes
 
-
-load_dotenv()
 
 models.Base.metadata.create_all(bind=engine)
 
