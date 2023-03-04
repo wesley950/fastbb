@@ -1,5 +1,3 @@
-import os
-
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -18,6 +16,19 @@ router = APIRouter(
 
 @router.post("/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(dependencies.get_db)):
+    if not user.username:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username can not be empty."
+        )
+
+    # TODO: replace with password strength checker
+    if not user.password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password can not be empty."
+        )
+
     stored_user = db.query(models.StoredUser).filter(models.StoredUser.username == user.username).first()
     if stored_user:
         raise HTTPException(
