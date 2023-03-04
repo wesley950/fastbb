@@ -25,3 +25,21 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: str | None = None
+
+
+class PostBase(BaseModel):
+    text: str
+    parent_id: int | None = None
+
+
+class Post(PostBase):
+    id: int
+    user_id: int
+    children: list["Post"] = []
+
+    class Config:
+        orm_mode = True
+
+
+class PostCreate(PostBase):
+    pass
