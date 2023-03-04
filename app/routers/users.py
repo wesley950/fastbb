@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from jose import jwt
 
-from app import crud, crypto, models, schemas, dependencies
+from app import crypto, models, schemas, dependencies
 from app.environment import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 
 
@@ -18,25 +18,35 @@ router = APIRouter(
 
 @router.post("/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(dependencies.get_db)):
-    stored_user = crud.get_user_by_name(db, user.username)
+    stored_user = db.query(models.StoredUser).filter(models.StoredUser.username == user.username).first()
     if stored_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Username already in use.")
-    return crud.create_user(db, user)
+    
+    if user.email:
+        stored_user = db.query(models.StoredUser).filter(models.StoredUser.email == user.email).first()
+        if stored_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Email already in use.")
 
+    hashed_password = crypto.hash_password(user.password)
+    stored_user = models.StoredUser(username=user.username,
+                                    email=user.email if user.email else None,
+                                    hashed_password=hashed_password)
+    db.add(stored_user)
+    db.commit()
+    db.refresh(stored_user)
 
-@router.get("/", response_model=list[schemas.User])
-def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(dependencies.get_db)):
-    return crud.get_users(db, skip, limit)
-
-
-@router.get("/profile/{username}/", response_model=schemas.User)
-def read_user(username: str, db: Session = Depends(dependencies.get_db)):
-    stored_user = crud.get_user_by_name(db, username)
-    if not stored_user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User does not exist.")
     return stored_user
+
+
+# @router.get("/{username}/", response_model=schemas.User)
+# def read_user(username: str, db: Session = Depends(dependencies.get_db)):
+#     stored_user = crud.get_user_by_name(db, username)
+#     if not stored_user:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND, detail="User does not exist.")
+#     return stored_user
 
 
 @router.get("/me")
@@ -45,7 +55,7 @@ async def read_users_me(current_user: models.User = Depends(dependencies.get_cur
 
 
 def authenticate_user(db: Session, username: str, password: str):
-    user = crud.get_stored_user_by_name(db, username)
+    user = db.query(models.StoredUser).filter(models.StoredUser.username == username).first()
     if not user:
         return False
     if not crypto.verify_password(password, user.hashed_password):
@@ -74,6 +84,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
             detail="Incorrect username or password.",
             headers={"WWW-Authenticate": "Bearer"}
         )
+
+    user.last_login = datetime.now()
+    db.commit()
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(

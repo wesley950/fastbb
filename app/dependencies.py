@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from jose import jwt, JWTError
 
-from . import crud, models, schemas
+from . import models, schemas
 from app.database import SessionLocal
 from app.environment import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 
@@ -25,7 +25,7 @@ def get_db():
 
 
 def get_user(db: Session, username: str):
-    stored_user = crud.get_user_by_name(db, username)
+    stored_user = db.query(models.User).filter(models.User.username == username).first()
     return stored_user
 
 
