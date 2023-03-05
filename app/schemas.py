@@ -42,4 +42,19 @@ class Post(PostBase):
 
 
 class PostCreate(PostBase):
+    category: str
+
+
+class CategoryBase(BaseModel):
+    name: str
+
+
+class Category(CategoryBase):
+    posts: list["Post"] = []
+
+    class Config:
+        orm_mode = True
+
+
+class CategoryCreate(CategoryBase):
     pass

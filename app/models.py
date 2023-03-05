@@ -24,6 +24,16 @@ class StoredUser(User):
     hashed_password = Column(String)
 
 
+class Category(Base):
+    __tablename__ = "categories"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True, nullable=False)
+    add_date = Column(DateTime, default=datetime.now)
+
+    posts = relationship("Post", back_populates="category")
+
+
 class Post(Base):
     __tablename__ = "posts"
 
@@ -31,8 +41,11 @@ class Post(Base):
     text = Column(String, nullable=False)
     reg_date = Column(DateTime, default=datetime.now)
 
-    user_id = Column(ForeignKey("users.id"))
+    user_id = Column(ForeignKey("users.id"), nullable=False)
     user = relationship("User", back_populates="posts")
+
+    category_id = Column(ForeignKey("categories.id"), nullable=False)
+    category = relationship("Category", back_populates="posts")
 
     children = relationship("Post", back_populates="parent")
 
