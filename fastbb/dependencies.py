@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 
 from . import models, schemas
-from app.database import SessionLocal
-from app.environment import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
+from fastbb.database import SessionLocal
+from fastbb.environment import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login")

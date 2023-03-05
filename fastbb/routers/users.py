@@ -4,8 +4,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from jose import jwt
 
-from app import crypto, models, schemas, dependencies
-from app.environment import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
+from fastbb import crypto, models, schemas, dependencies
+from fastbb.environment import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 
 
 router = APIRouter(
