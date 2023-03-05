@@ -51,15 +51,6 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(dependencies.get
     return stored_user
 
 
-# @router.get("/{username}/", response_model=schemas.User)
-# def read_user(username: str, db: Session = Depends(dependencies.get_db)):
-#     stored_user = crud.get_user_by_name(db, username)
-#     if not stored_user:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND, detail="User does not exist.")
-#     return stored_user
-
-
 @router.get("/me")
 async def read_users_me(current_user: models.User = Depends(dependencies.get_current_active_user)):
     return current_user
